@@ -21,28 +21,21 @@ constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
 void solve() {
 	string s, t; std::cin >> s >> t;
-	i64 n = s.size(), m = t.size();
-	s = " " + s; t = " " + t;
-	vector dp(n + 5, vector<i64>(n + 5, 0));
+	i64 n = s.size(), m = t.size(); s = " " + s; t = " " + t;
+	std::vector dp(n + 1, std::vector<i64>(n + 1, 0));
 	for (i64 i = 1; i <= n; i++) {
 		if (i > m or s[1] == t[i])dp[i][i] = 2;
 	}
-	//重构为 t[l -- r]的序列方法数
+
 	for (i64 len = 2; len <= n; len++) {
 		for (i64 l = 1; l + len - 1 <= n; l++) {
 			i64 r = l + len - 1;
-			//向前转移
-			if (s[len] == t[l] or len > m)dp[l][r] = (dp[l][r] % mod + dp[l + 1][r]) % mod;
-			//向后转移
-			if (s[len] == t[r] or len > m)dp[l][r] = (dp[l][r] % mod + dp[l][r - 1]) % mod;
+			if (t[l] == s[len] or l > m)dp[l][r] = (dp[l][r] % mod + dp[l + 1][r]) % mod;
+			if (t[r] == s[len] or r > m)dp[l][r] = (dp[l][r] % mod + dp[l][r - 1]) % mod;
 		}
 	}
-	i64 ans = 0;
-	for (i64 i = m; i <= n; i++) {
-		ans = (ans % mod + dp[1][i]) % mod;
-	}
-	std::cout  << ans << "\n";
-;
+	i64 ans = accumulate(dp[1].begin() + m, dp[1].begin() + n + 1, 0ll);
+	std::cout << ans << "\n";
 }
 int main() {
 	solve();
