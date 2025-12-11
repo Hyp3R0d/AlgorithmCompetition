@@ -48,8 +48,10 @@ int main() {
     };
     while (q.size()) {
         auto [d, x, y] = q.top();
+        q.pop();
+        if (vis[x][y])continue;
         vis[x][y] = true;
-        q.pop(); for (auto [dx, dy] : dir) {
+        for (auto [dx, dy] : dir) {
             i64 xx = x + dx, yy = y + dy;
             if (not check(xx, yy))continue;
             if (dis[xx][yy] > dis[x][y] + cal(a[x][y], a[xx][yy])) {

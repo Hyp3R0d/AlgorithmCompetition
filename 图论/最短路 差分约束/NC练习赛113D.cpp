@@ -19,47 +19,50 @@ constexpr i64 mod = 998244353;
 constexpr i64 maxn = 4e6 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
+struct cmp {
+	bool operator()(const pair<i64, i64>&x, const pair<i64, i64>&y)const {
+		return x.first > y.first;
+	}
+};
+
 void solve() {
 	i64 n, p, x, q, y; std::cin >> n >> p >> x >> q >> y;
 	i64 tot = 0;
+	std::vector<i64>vis(n);
+	std::vector<i64>dis(n, inf);
+	priority_queue<std::pair<i64, i64>, std::vector<pair<i64, i64>>, cmp>pq;
 	for (i64 i = 1; i <= n; i++) {
-		i64 v; std::cin >> v;
-		tot = (tot % n + v) % n;
+		i64 v; std::cin >> v; tot = (tot % n + v) % n;
 	}
-	priority_queue<pair<i64, i64>, vector<pair<i64, i64>>, greater<pair<i64, i64>>>que;
-	vector<vector<pair<i64, i64>>>tr(n + 1);
-	for (i64 i = 0; i < n; i++) {
-		i64 v = (i + x) % n;
-		tr[i + 1].push_back({v + 1, p});
-		v = ((i - y) % n + n) % n;
-		tr[i + 1].push_back({v + 1, q});
-	}
-	vector<i64>dis(n + 5, inf);
-	auto dij = [&]() {
-
-		que.push({0, tot + 1});
-		dis[tot + 1] = 0; vector<bool>vis(n + 5, false);
-		while (que.size()) {
-			auto [d, u] = que.top();
-			que.pop(); vis[u] = 1;
-			for (auto [v, w] : tr[u]) {
-				if (dis[u] + w < dis[v]) {
-					dis[v] = dis[u] + w;
-					if (not vis[v]) {
-						que.push({vis[v], v});
-					}
-				}
+	dis[tot] = 0;
+	pq.push({0, tot});
+	while (pq.size()) {
+		auto [d, u] = pq.top(); pq.pop();
+		if (u == 0) {
+			std::cout << d << "\n"; return;
+		}
+		if (vis[u])continue; vis[u] = true;
+		i64 v1 = (u + x) % n;
+		if (dis[v1] > dis[u] + p) {
+			dis[v1] = dis[u] + p;
+			if (not vis[v1]) {
+				pq.push({dis[v1], v1});
 			}
 		}
-	};
-	dij();
-	if (dis[1] == inf) {
-		puts("-1");
-	} else {
-		std::cout  << dis[1] << "\n";
-;
+		i64 v2 = ((u - y) % n + n) % n;
+		if (dis[v2] > dis[u] + q) {
+			dis[v2] = dis[u] + q;
+			if (not vis[v2]) {
+				pq.push({dis[v2], v2});
+			}
+		}
 	}
+	if (dis[0] == inf) {
+		puts("-1"); return;
+	}
+	std::cout << dis[0] << "\n";
 }
+
 int main() {
 
 	solve();

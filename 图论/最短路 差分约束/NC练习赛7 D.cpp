@@ -20,46 +20,44 @@ constexpr i64 maxn = 4e6 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
 i64 n, m, q, t, s;
-vector<i64>tr[maxn];
+vector<i64>g[maxn];
 i64 dis[maxn], vis[maxn];
 void solve() {
 	std::cin >> n >> m >> q;
 
 	for (i64 i = 1; i <= m; i++) {
 		i64 u, v; std::cin >> u >> v;
-		tr[u].push_back(v);
-		tr[v].push_back(u);
+		g[u].push_back(v);
+		g[v].push_back(u);
 	}
 	while (q--) {
 		std::cin >> t >> s;
-		std::priority_queue<pair<i64, i64>, vector<pair<i64, i64>>, greater<pair<i64, i64>>>pq;
+		//std::priority_queue<pair<i64, i64>, vector<pair<i64, i64>>, greater<pair<i64, i64>>>pq;
+		std::queue<i64>pq;
 		memset(dis, 0x3f, sizeof(dis));
 		memset(vis, 0, sizeof(vis));
 		for (i64 i = 1; i <= t; i++) {
-			i64 v; std::cin >> v; pq.push({0, v});
-			dis[v] = 0;
+			i64 v; std::cin >> v; pq.push(v);
+			dis[v] = 0; vis[v] = true;
 		}
 		while (pq.size()) {
-			auto cur = pq.top();
+			auto u = pq.front();
 			pq.pop();
-			i64 u = cur.second, d = cur.first; vis[u] = 1;
-			for (auto v : tr[u]) {
-				if (dis[v] > dis[u] + 1) {
-					dis[v] = min(dis[v], dis[u] + 1);
-					if (not vis[v]) {
-						pq.push({dis[v], v});
-					}
+			for (auto v : g[u]) {
+				if (not vis[v]) {
+					dis[v] = dis[u] + 1;
+					pq.push(v);
+					vis[v] = true;
 				}
 			}
 		}
 		i64 ans = 0;
 		for (i64 i = 1; i <= n; i++) {
-			if (dis[i] and dis[i] <= s) {
+			if (dis[i] <= s) {
 				ans++;
 			}
 		}
 		std::cout  << ans << "\n";
-;
 	}
 }
 int main() {
