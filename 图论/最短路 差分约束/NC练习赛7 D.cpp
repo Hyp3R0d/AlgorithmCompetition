@@ -32,17 +32,18 @@ void solve() {
 	}
 	while (q--) {
 		std::cin >> t >> s;
+		i64 ans = 0;
 		//std::priority_queue<pair<i64, i64>, vector<pair<i64, i64>>, greater<pair<i64, i64>>>pq;
 		std::queue<i64>pq;
-		memset(dis, 0x3f, sizeof(dis));
-		memset(vis, 0, sizeof(vis));
+		for (i64 i = 1; i <= n; i++)dis[i] = inf, vis[i] = false;
 		for (i64 i = 1; i <= t; i++) {
 			i64 v; std::cin >> v; pq.push(v);
 			dis[v] = 0; vis[v] = true;
 		}
 		while (pq.size()) {
 			auto u = pq.front();
-			pq.pop();
+			pq.pop(); 
+            
 			for (auto v : g[u]) {
 				if (not vis[v]) {
 					dis[v] = dis[u] + 1;
@@ -51,12 +52,7 @@ void solve() {
 				}
 			}
 		}
-		i64 ans = 0;
-		for (i64 i = 1; i <= n; i++) {
-			if (dis[i] <= s) {
-				ans++;
-			}
-		}
+        for(i64 i = 1;i <= n;i ++)if(dis[i] <= s) ans++;
 		std::cout  << ans << "\n";
 	}
 }

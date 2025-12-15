@@ -1,3 +1,11 @@
+/*多组Test下使用封装数据结构, 在函数中开对象,避免暴力清空数组造成时间浪费*/
+
+/*STL: 数据结构 std::cin std::cout  function类 lowerbound builtin max min accumulate iota stoi atoi等函数需要加上std,避免命名空间污染*/
+
+/*数学先打表, 后对拍, 图论只会暴力就bitset搞*/
+
+/*300兆字节 1- 2 秒*/
+
 #include<bits/extc++.h>
 
 using i8 = signed char;
@@ -19,100 +27,109 @@ constexpr i64 mod = 998244353;
 constexpr i64 maxn = 1e5 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
-struct sq {
-	i64 mul = 1; i64 add; i64 sum;
-	i64 l; i64 r;
-} tr[maxn * 4];
 i64 n, q, m;
-i64 a[maxn];
-void pushUp(i64 u) {
-	tr[u].sum = (tr[u << 1].sum % m + tr[u << 1 | 1].sum) % m;
-	return;
-}
-void build(i64 u, i64 l, i64 r) {
-	tr[u].l = l; tr[u].r = r;
-	if (l == r) {
-		tr[u].mul = 1; tr[u].add = 0;
-		tr[u].sum = a[l]; return;
-	}
-	i64 mid = (l + r) >> 1;
-	build(u << 1, l, mid);
-	build(u << 1 | 1, mid + 1, r);
-	pushUp(u);
-}
-void pushDown(i64 u) {
-	if (tr[u].mul != 1) {
-		i64 mu = tr[u].mul;
-		tr[u].mul = 1;
-		tr[u << 1].mul = tr[u << 1].mul % m * mu % m; tr[u << 1 | 1].mul = tr[u << 1 | 1].mul % m * mu % m;
-		tr[u << 1].sum = (tr[u << 1].sum % m * mu) % m;
-		tr[u << 1 | 1].sum = (tr[u << 1 | 1].sum % m * mu) % m;
-		tr[u << 1].add = (tr[u << 1].add % m * mu) % m;
-		tr[u << 1 | 1].add = (tr[u << 1 | 1].add % m * mu) % m;
-	}
-	if (tr[u].add) {
-		i64 ad = tr[u].add;
-		tr[u].add = 0;
-		tr[u << 1].add = (tr[u << 1].add + ad) % m;
-		tr[u << 1 | 1].add = (tr[u << 1 | 1].add % m + ad) % m;
-		i64 len1 = (tr[u << 1].r - tr[u << 1].l + 1);
-		i64 len2 = (tr[u << 1 | 1].r - tr[u << 1 | 1].l + 1);
-		tr[u << 1].sum = (tr[u << 1].sum % m + len1 % m * ad) % m;
-		tr[u << 1 | 1].sum = (tr[u << 1 | 1].sum % m + len2 % m * ad) % m;
-	}
-}
-void multiply(i64 u, i64 l, i64 r, i64 v) {
-	if (tr[u].l >= l and tr[u].r <= r) {
-		tr[u].mul = (tr[u].mul % m * v) % m;
-		tr[u].add = (tr[u].add % m * v) % m;
-		tr[u].sum = (tr[u].sum % m * v) % m;
-		return;
-	}
-	pushDown(u);
-	i64 mid = (tr[u].l + tr[u].r) >> 1;
-	if (l <= mid)multiply(u << 1, l, r, v);
-	if (r > mid)multiply(u << 1 | 1, l, r, v);
-	pushUp(u);
-}
-void add(i64 u, i64 l, i64 r, i64 v) {
-	if (tr[u].l >= l and tr[u].r <= r) {
-		tr[u].add = (tr[u].add % m + v) % m;
-		tr[u].sum = (tr[u].sum + (tr[u].r - tr[u].l + 1) % m * v) % m;
-		return;
-	}
-	pushDown(u);
-	i64 mid = (tr[u].l + tr[u].r) >> 1;
-	if (l <= mid)add(u << 1, l, r, v);
-	if (r > mid)add(u << 1 | 1, l, r, v);
-	pushUp(u);
-}
-i64 querySum(i64 u, i64 l, i64 r) {
-	if (tr[u].l >= l and tr[u].r <= r) {
-		return tr[u].sum % m;
-	}
-	pushDown(u);
-	i64 ret = 0;
-	i64 mid = (tr[u].l + tr[u].r) >> 1;
-	if (l <= mid)ret = (ret % m + querySum(u << 1, l, r)) % m;
-	if (r > mid)ret = (ret % m + querySum(u << 1 | 1, l, r)) % m;
-	return ret % m;
-}
 
+template<typename T>
+struct SegmentTree {
+	struct Node {
+		T mul = 1; T add; T sum;
+		i64 l; i64 r;
+	};
+	std::vector<Node>tr;
+	SegmentTree(i64 n): tr(4 * n + 5) {}
+
+	void pushUp(i64 u) {
+		tr[u].sum = (tr[u << 1].sum % m + tr[u << 1 | 1].sum) % m;
+		return;
+	}
+
+	void build(i64 u, i64 l, i64 r, const std::vector<T>&a) {
+		tr[u].l = l; tr[u].r = r;
+		if (l == r) {
+			tr[u].mul = 1; tr[u].add = 0;
+			tr[u].sum = a[l]; return;
+		}
+		i64 mid = (l + r) >> 1;
+		build(u << 1, l, mid, a);
+		build(u << 1 | 1, mid + 1, r, a);
+		pushUp(u);
+	}
+
+	void pushDown(i64 u) {
+		if (tr[u].mul != 1) {
+			i64 mu = tr[u].mul;
+			tr[u].mul = 1;
+			tr[u << 1].mul = tr[u << 1].mul % m * mu % m; tr[u << 1 | 1].mul = tr[u << 1 | 1].mul % m * mu % m;
+			tr[u << 1].sum = (tr[u << 1].sum % m * mu) % m;
+			tr[u << 1 | 1].sum = (tr[u << 1 | 1].sum % m * mu) % m;
+			tr[u << 1].add = (tr[u << 1].add % m * mu) % m;
+			tr[u << 1 | 1].add = (tr[u << 1 | 1].add % m * mu) % m;
+		}
+		if (tr[u].add) {
+			i64 ad = tr[u].add;
+			tr[u].add = 0;
+			tr[u << 1].add = (tr[u << 1].add + ad) % m;
+			tr[u << 1 | 1].add = (tr[u << 1 | 1].add % m + ad) % m;
+			i64 len1 = (tr[u << 1].r - tr[u << 1].l + 1);
+			i64 len2 = (tr[u << 1 | 1].r - tr[u << 1 | 1].l + 1);
+			tr[u << 1].sum = (tr[u << 1].sum % m + len1 % m * ad) % m;
+			tr[u << 1 | 1].sum = (tr[u << 1 | 1].sum % m + len2 % m * ad) % m;
+		}
+	}
+	void multiply(i64 u, i64 l, i64 r, T v) {
+		if (tr[u].l >= l and tr[u].r <= r) {
+			tr[u].mul = (tr[u].mul % m * v) % m;
+			tr[u].add = (tr[u].add % m * v) % m;
+			tr[u].sum = (tr[u].sum % m * v) % m;
+			return;
+		}
+		pushDown(u);
+		i64 mid = (tr[u].l + tr[u].r) >> 1;
+		if (l <= mid)multiply(u << 1, l, r, v);
+		if (r > mid)multiply(u << 1 | 1, l, r, v);
+		pushUp(u);
+	}
+	void add(i64 u, i64 l, i64 r, T v) {
+		if (tr[u].l >= l and tr[u].r <= r) {
+			tr[u].add = (tr[u].add % m + v) % m;
+			tr[u].sum = (tr[u].sum + (tr[u].r - tr[u].l + 1) % m * v) % m;
+			return;
+		}
+		pushDown(u);
+		i64 mid = (tr[u].l + tr[u].r) >> 1;
+		if (l <= mid)add(u << 1, l, r, v);
+		if (r > mid)add(u << 1 | 1, l, r, v);
+		pushUp(u);
+	}
+	T querySum(i64 u, i64 l, i64 r) {
+		if (tr[u].l >= l and tr[u].r <= r) {
+			return tr[u].sum % m;
+		}
+		pushDown(u);
+		T ret = 0;
+		i64 mid = (tr[u].l + tr[u].r) >> 1;
+		if (l <= mid)ret = (ret % m + querySum(u << 1, l, r)) % m;
+		if (r > mid)ret = (ret % m + querySum(u << 1 | 1, l, r)) % m;
+		return ret % m;
+	}
+};
 int main() {
 	std::cin >> n >> q >> m;
+	std::vector<i64>a(n + 1);
 	for (i64 i = 1; i <= n; i++)std::cin >> a[i];
-	build(1, 1, n);
+	SegmentTree<i64>t(n);
+	t.build(1, 1, n, a);
 	while (q--) {
 		i64 opt; std::cin >> opt;
 		if (opt == 1) {
 			i64 x, y, k; std::cin >> x >> y >> k;
-			multiply(1, x, y, k);
+			t.multiply(1, x, y, k);
 		} else if (opt == 2) {
 			i64 x, y, k; std::cin >> x >> y >> k;
-			add(1, x, y, k);
+			t.add(1, x, y, k);
 		} else {
 			i64 x, y; std::cin >> x >> y;
-			std::cout  << querySum(1, x, y) % m << "\n";;
+			std::cout  << t.querySum(1, x, y) % m << "\n";;
 		}
 	}
 }
