@@ -66,7 +66,7 @@ public:
     }
   }
 
-  void modify(i64 p, i64 l, i64 r, T val) { // 修改为 x
+  void modify(i64 p, i64 l, i64 r, T val) { // 修改为x
     if (tr[p].l >= l and tr[p].r <= r) {
       tr[p].mx = val; tr[p].add = 0;
       tr[p].c = val;
@@ -83,7 +83,7 @@ public:
     pushUp(p);
   }
 
-  void add(i64 p, i64 l, i64 r, T val) { // 修改为 x
+  void add(i64 p, i64 l, i64 r, T val) { // 整体＋x
     if (tr[p].l >= l and tr[p].r <= r) {
       tr[p].mx += val; tr[p].add += val;
       return;
@@ -119,7 +119,7 @@ public:
 int main() {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
-  std::cout .tie(nullptr);
+  std::cout.tie(nullptr);
   i64 n, q; std::cin >> n >> q;
   SegmentTree<i64>t(n);
   std::vector<i64>a(n + 1);
