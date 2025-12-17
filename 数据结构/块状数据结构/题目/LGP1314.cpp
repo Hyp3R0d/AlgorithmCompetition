@@ -68,7 +68,9 @@ i64 query(i64 x, i64 y, i64 k) {
     return cnt * q;
   }
 }
-void solve() {
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(0); cout.tie(0);
   i64 m, s; std::cin >> n >> m >> s;
   for (i64 i = 1; i <= n; i++) {
     std::cin >> wv[i].first >> wv[i].second;
@@ -79,7 +81,7 @@ void solve() {
   for (i64 i = 1; i <= m; i++) {
     std::cin >> p[i].first >> p[i].second;
   }
-  i64 l = 0, r = 1e10;
+  i64 l = 0, r = 1e6 + 5;
   i64 ans = inf;
   while (l <= r) {
     i64 mid = (l + r) >> 1;
@@ -93,7 +95,4 @@ void solve() {
     ans = min(ans, abs(cur - s));
   }
   std::cout  << ans << "\n";;
-}
-int main() {
-  solve();
 }

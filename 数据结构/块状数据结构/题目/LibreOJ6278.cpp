@@ -40,9 +40,12 @@ public:
     }
 
     void pushDown(i64 idx) {
-        if (lazy[idx] != inf) {
-            for (i64 i = blockStart[idx]; i <= blockEnd[idx]; i++)array[i] = backArray[i] = lazy[idx];
-            lazy[idx] = inf;
+        if (lazy[idx] != 0) {
+            for (i64 i = blockStart[idx]; i <= blockEnd[idx]; i++) {
+                array[i] += lazy[idx];
+                backArray[i] += lazy[idx];
+            }
+            lazy[idx] = 0;
         }
     }
 
@@ -50,30 +53,29 @@ public:
         i64 x = belong[l], y = belong[r];
         pushDown(x);
         if (x == y) {
-            for (i64 i = l; i <= r; i++)array[i] = c;
+            for (i64 i = l; i <= r; i++)array[i] += c;
             resort(x);
             return;
         }
         pushDown(y);
-        for (i64 i = l; i <= blockEnd[x]; i++)array[i] = c;
-        for (i64 i = blockStart[y]; i <= r; i++)array[i] = c;
+        for (i64 i = l; i <= blockEnd[x]; i++)array[i] += c;
+        for (i64 i = blockStart[y]; i <= r; i++)array[i] += c;
         resort(x); resort(y);
-        for (i64 i = x + 1; i <= y - 1; i++)lazy[i] = c;
+        for (i64 i = x + 1; i <= y - 1; i++)lazy[i] += c;
     }
 
     i64 query(i64 l, i64 r, i64 c) {
         i64 ans = 0; i64 x = belong[l], y = belong[r];
         pushDown(x);
         if (x == y) {
-            for (i64 i = l; i <= r; i++)if (array[i] <= c)ans++;
+            for (i64 i = l; i <= r; i++)if (array[i] + lazy[x] < c)ans++;
             return ans;
         }
         pushDown(y);
-        for (i64 i = l; i <= blockEnd[x]; i++)if (array[i] <= c)ans++;
-        for (i64 i = blockStart[y]; i <= r; i++)if (array[i] <= c)ans++;
+        for (i64 i = l; i <= blockEnd[x]; i++)if (array[i] + lazy[x] < c)ans++;
+        for (i64 i = blockStart[y]; i <= r; i++)if (array[i] + lazy[x] < c)ans++;
         for (i64 i = x + 1; i <= y - 1; i++) {
-            if (lazy[i] == inf)ans += upper_bound(d.begin() + blockStart[i], d.begin() + blockEnd[i] + 1, c) - d.begin() - 1;
-            else if (lazy[i] <= c)ans += blockEnd[i] - blockStart[i] + 1;
+            ans += lower_bound(backArray.begin() + blockStart[i], backArray.begin() + blockEnd[i] + 1, c - lazy[i]) - (backArray.begin() + blockStart[i] - 1) - 1;
         }
         return ans;
     }
@@ -90,12 +92,24 @@ public:
     PartitialArray(std::vector<i64>a, i64 n): totalLength(n), blockLength(sqrt(n)),
         totalBlocks((totalLength + blockLength - 1) / blockLength), blockStart(totalBlocks + 1),
         blockEnd(totalBlocks + 1), array(a), backArray(totalLength + 1), belong(totalLength + 1),
-        lazy(totalBlocks + 1, inf) {
+        lazy(totalBlocks + 1, 0) {
         build();
     }
 };
 
 
 int main() {
-
+    i64 n;
+    std::cin >> n;
+    std::vector<i64>a(n + 1);
+    for (i64 i = 1; i <= n; i++)std::cin >> a[i];
+    PartitialArray w(a, n);
+    while (n--) {
+        i64 opt, l, r, c; std::cin >> opt >> l >> r >> c;
+        if (not opt) {
+            w.modify(l, r, c);
+        } else {
+            std::cout << w.query(l, r, c * c) << "\n";
+        }
+    }
 }

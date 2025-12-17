@@ -15,80 +15,107 @@ using u128 = __uint128_t;
 using f128 = long double;
 using namespace std;
 
-constexpr i64 mod = 998244353;
-constexpr i64 maxn = 4e6 + 5;
+constexpr i64 mod = 1e9 + 7;
+constexpr i64 maxn = 1e5 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
 class Solution {
 public:
-    int pre[100005];
-    vector<i64>add, sum1, sum2;
-    void init(int n) {
-        add.resize(n * 4 + 5);
-        sum1.resize(n * 4 + 5);
-        sum2.resize(n * 4 + 5);
-    }
-    void pushup(int p) {
-        sum1[p] = (sum1[p << 1] % mod + sum1[p << 1 | 1]) % mod;
-        sum2[p] = (sum2[p << 1] % mod + sum2[p << 1 | 1]) % mod;
-    }
-
-    void build(int p, int l, int r) {
-        sum1[p] = 0; sum2[p] = 0; add[p] = 0;
-        if (l == r) {
-            return;
+    struct SegmentTree {
+    public:
+        struct Node {
+        public:
+            i64 l; i64 r; i64 sum; i64 sumSquare; i64 lazyTag;
+        };
+        std::vector<Node>tr;
+        SegmentTree(i64 n): tr(4 * n + 3) {}
+        void pushUp(i64 u) {
+            tr[u].sum = tr[u << 1].sum + tr[u << 1 | 1].sum;
+            tr[u].sum %= mod;
+            tr[u].sumSquare = tr[u << 1].sumSquare + tr[u << 1 | 1].sumSquare;
+            tr[u].sumSquare %= mod;
         }
-        int mid = (l + r) >> 1;
-        build(p << 1, l, mid); build(p << 1 | 1, mid + 1, r);
-        pushup(p);
-    }
-    void pushdown(int p, int l, int r) {
-        int mid = (l + r) >> 1;
-        int len1 = mid - l + 1;
-        int len2 = r - mid;
-        int v = add[p]; add[p] = 0;
-        add[p << 1] += v; add[p << 1] %= mod;
-        add[p << 1 | 1] += v; add[p << 1 | 1] %= mod;
-        sum2[p << 1] = (sum2[p << 1] % mod + sum1[p << 1] % mod * 2 % mod * v % mod + v % mod * v % mod * len1 % mod) % mod;
-        sum1[p << 1] = (sum1[p << 1] % mod + v % mod * len1 % mod) % mod;
-        sum2[p << 1 | 1] = (sum2[p << 1 | 1] % mod + sum1[p << 1 | 1] % mod * 2 % mod * v % mod + v % mod * v % mod * len2 % mod) % mod;
-        sum1[p << 1 | 1] = (sum1[p << 1 | 1] % mod + v % mod * len2 % mod) % mod;
-    }
-    void modify(int p, int L, int R, int l, int r, int v) {
-        if (L >= l and R <= r) {
-            add[p] = (add[p] % mod + v) % mod;
-            sum2[p] = (sum2[p] % mod + sum1[p] % mod * 2 % mod * v % mod + v % mod * v % mod * (R - L + 1) % mod) % mod;
-            sum1[p] = (sum1[p] % mod + v % mod * (R - L + 1) % mod) % mod;
-            return;
+        void build(i64 u, i64 l, i64 r) {
+            tr[u].l = l; tr[u].r = r;
+            tr[u].lazyTag = 0;
+            if (l == r) {
+                tr[u].sum = 0; tr[u].sumSquare = 0;
+                return;
+            }
+            i64 mid = (l + r) >> 1;
+            build(u << 1, l, mid);
+            build(u << 1 | 1, mid + 1, r);
+            pushUp(u);
         }
-        pushdown(p, L , R);
-        int mid = (L + R) >> 1;
-        if (l <= mid)modify(p << 1, L, mid, l, r, v);
-        if (r > mid)modify(p << 1 | 1, mid + 1, R, l, r, v);
-        pushup(p);
-    }
-    i64 query(int p, int L, int R, int l, int r) {
-        if (L >= l and R <= r) {
-            return sum2[p] % mod;
+        void pushDown(i64 u) {
+            if (tr[u].lazyTag) {
+                i64 add = tr[u].lazyTag;
+                tr[u].lazyTag = 0;
+                tr[u << 1].lazyTag = (tr[u << 1].lazyTag + add) % mod;
+                tr[u << 1 | 1].lazyTag = (tr[u << 1 | 1].lazyTag + add) % mod;
+                i64 len1 = (tr[u << 1].r - tr[u << 1].l + 1);
+                i64 len2 = (tr[u << 1 | 1].r - tr[u << 1 | 1].l + 1);
+                tr[u << 1].sumSquare = (tr[u << 1].sumSquare + 2 * add % mod * tr[u << 1].sum % mod) % mod;
+                tr[u << 1].sumSquare += len1 * add * add;
+                tr[u << 1].sumSquare %= mod;
+                tr[u << 1].sum = (tr[u << 1].sum + len1 * add) % mod;
+                tr[u << 1 | 1].sumSquare = (tr[u << 1 | 1].sumSquare + 2 * add * tr[u << 1 | 1].sum) % mod;
+                tr[u << 1 | 1].sumSquare += len2 * add * add;
+                tr[u << 1 | 1].sumSquare %= mod;
+                tr[u << 1 | 1].sum = (tr[u << 1 | 1].sum + len2 * add) % mod;
+            }
         }
-        pushdown(p, L, R);
-        i64 ret = 0;
-        int mid = (L + R) >> 1;
-        if (l <= mid)ret = (ret % mod + query(p << 1, L, mid, l, r)) % mod;
-        if (r > mid)ret = (ret % mod + query(p << 1 | 1, mid + 1, R, l, r)) % mod;
-        return ret % mod;
-    }
+        void modify1(i64 u, i64 l, i64 r, i64 v) {
+            if (tr[u].l >= l and tr[u].r <= r) {
+                i64 len = (tr[u].r - tr[u].l + 1);
+                tr[u].sumSquare = (tr[u].sumSquare + len * v * v % mod + tr[u].sum * 2 % mod * v) % mod;
+                tr[u].sum += len * v;
+                tr[u].sum %= mod;
+                tr[u].lazyTag += v;
+                tr[u].lazyTag %= mod;
+                return;
+            }
+            pushDown(u);
+            i64 mid = (tr[u].l + tr[u].r) >> 1;
+            if (l <= mid)modify1(u << 1, l, r, v);
+            if (r > mid)modify1(u << 1 | 1, l, r, v);
+            pushUp(u);
+        }
+        i64 query1(i64 u, i64 l, i64 r) {
+            i64 ret = 0;
+            if (tr[u].l >= l and tr[u].r <= r) {
+                return tr[u].sum % mod;
+            }
+            pushDown(u);
+            i64 mid = (tr[u].l + tr[u].r) >> 1;
+            if (l <= mid)ret = (ret % mod + query1(u << 1, l, r)) % mod;
+            if (r > mid)ret = (ret % mod + query1(u << 1 | 1, l, r)) % mod;
+            return ret;
+        }
+        i64 query2(i64 u, i64 l, i64 r) {
+            i64 ret = 0;
+            if (tr[u].l >= l and tr[u].r <= r) {
+                return tr[u].sumSquare % mod;
+            }
+            pushDown(u);
+            i64 mid = (tr[u].l + tr[u].r) >> 1;
+            if (l <= mid)ret = (ret % mod + query2(u << 1, l, r)) % mod;
+            if (r > mid)ret = (ret % mod + query2(u << 1 | 1, l, r)) % mod;
+            return ret;
+        }
+    };
     int sumCounts(vector<int>& nums) {
-        int n = nums.size(); init(n);
-        std::fill(pre + 1, pre + 1 + 100000, 0);
-        build(1, 1, n); i64 res = 0;
-        for (int i = 1; i <= n; i++) {
-            int cur = nums[i - 1];
-            int p = pre[cur];
-            modify(1, 1, n, p + 1, i, 1);
-            pre[cur] = i;
-            res = (res % mod + sum2[1]) % mod;
+        i64 n = nums.size();
+        SegmentTree t(n);
+        t.build(1, 1, n);
+        i64 ans = 0;
+        std::unordered_map<i64, i64>pre;
+        for (i64 i = 1; i <= n; i++) {
+            i64 p = pre[nums[i - 1]];
+            t.modify1(1, p + 1, i, 1);
+            ans = (ans % mod + t.query2(1, 1, n)) % mod;
+            pre[nums[i - 1]] = i;
         }
-        return res % mod;
+        return ans % mod;
     }
 };
