@@ -19,6 +19,7 @@ constexpr i64 mod = 998244353;
 constexpr i64 maxn = 4e6 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
+/*最小环问题*/
 class Solution {
 public:
     int findShortestCycle(int n, vector<vector<int>>& edges) {
@@ -52,5 +53,56 @@ public:
             ans = std::min(ans, bfs(i));
         }
         return ans == inf ? ans : -1;
+    }
+};
+
+
+#include<bits/extc++.h>
+
+using i8 = signed char;
+using u8 = unsigned char;
+using i16 = signed short int;
+using u16 = unsigned short int;
+using i32 = signed int;
+using u32 = unsigned int;
+using f32 = float;
+using i64 = signed long long;
+using u64 = unsigned long long;
+using f64 = double;
+using i128 = __int128_t;
+using u128 = __uint128_t;
+using f128 = long double;
+using namespace std;
+
+constexpr i64 mod = 998244353;
+constexpr i64 maxn = 4e6 + 5;
+constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
+
+class Solution {
+public:
+    int findShortestCycle(int n, vector<vector<int>>& edges) {
+        std::vector<std::vector<pair<i64, i64>>>g(n + 1);
+        for(i64 idx = 0; idx < edges.size(); idx ++) {
+            i64 u = edges[idx][0], v = edges[idx][1];
+            g[u].push_back({v, idx});
+            g[v].push_back({u, idx});
+        }      
+        i64 ans = inf;
+        for(i64 idx = 0; idx < edges.size(); idx ++) {
+            i64 u = edges[idx][0], v = edges[idx][1];
+            queue<i64>q;
+            std::vector<i64>dis(n + 1, -inf);
+            dis[u] = 0; q.push(u);
+            while(q.size()) {
+                auto u = q.front();q.pop();
+                for(auto [v, id] : g[u]) {
+                    if(id == idx)continue;
+                    if(dis[v] == -inf)dis[v] = dis[u] + 1, q.push(v);
+                }
+            }
+            if(dis[v] != -inf)
+            ans = std::min(ans, dis[v] + 1);
+        }
+        return ans == inf ? -1 : ans;
     }
 };

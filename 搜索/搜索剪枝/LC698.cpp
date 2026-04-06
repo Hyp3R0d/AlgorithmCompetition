@@ -55,3 +55,56 @@ public:
 		return dp[(1 << n) - 1];
 	}
 };
+
+
+
+#include <bits/extc++.h>
+
+using i8 = signed char;
+using u8 = unsigned char;
+using i16 = signed short int;
+using u16 = unsigned short int;
+using i32 = signed int;
+using u32 = unsigned int;
+using f32 = float;
+using i64 = signed long long;
+using u64 = unsigned long long;
+using f64 = double;
+using i128 = __int128_t;
+using u128 = __uint128_t;
+using f128 = long double;
+using namespace std;
+
+constexpr i64 mod = 998244353;
+constexpr i64 maxn = 4e6 + 5;
+constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
+
+class Solution {
+public:
+  bool canPartitionKSubsets(vector<int> &nums, int k) {
+    i64 all = accumulate(nums.begin(), nums.end(), 0ll);
+    i64 per = all / k, n = nums.size();
+    std::vector<bool> vis(n);
+    std::sort(nums.begin(), nums.end(),
+              [&](i64 x, i64 y) -> bool { return x > y; });
+    std::function<bool(i64, i64, i64)> dfs = [&](i64 idx, i64 cur, i64 cnt) {
+      if (cnt == k)
+        return true;
+      if (cur == per)
+        return dfs(0, 0, cnt + 1);
+      for (i64 i = idx; i < n; i++) {
+        if (vis[i] or cur + nums[i] > per)
+          continue;
+        vis[i] = true;
+        bool f = dfs(i + 1, cur + nums[i], cnt);
+        if (f)
+          return true;
+        vis[i] = false;
+        if (cur == 0)
+          return false;
+      }
+      return false;
+    };
+    return dfs(0, 0, 0);
+  }
+};
