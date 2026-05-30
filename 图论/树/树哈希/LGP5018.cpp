@@ -1,5 +1,4 @@
-#include<bits/extc++.h>
-
+#include <bits/stdc++.h>
 using i8 = signed char;
 using u8 = unsigned char;
 using i16 = signed short int;
@@ -14,46 +13,49 @@ using i128 = __int128_t;
 using u128 = __uint128_t;
 using f128 = long double;
 using namespace std;
-
-constexpr i64 mod = 1e9 + 7;
-constexpr i64 maxn = 5e2 + 5;
+constexpr i64 mod = 998244353;
+constexpr i64 maxn = 2e5 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
-
 int main() {
-	srand(time(0));
-	u64 mask = rand() % 1000005;
-	auto shift = [&](u64 x) {
-		x ^= mask;
-		x ^= (x << 13);
-		x ^= (x >> 7);
-		x ^= (x << 17);
-		x ^= mask;
-		return x;
-	};
-	i64 n; std::cin >> n;
-	std::vector<u64>hash(n + 5, 0ll), v(n + 5);
-	for (i64 i = 1; i <= n; i++) {
-		std::cin >> v[i];
-	}
-	std::vector<i64>sz(n + 1);
-	std::vector<pair<i64, i64>>g(n + 1);
-	for (i64 i = 1; i <= n; i++) {
-		i64 l, r; std::cin >> l >> r;
-		if (l < 0)l = 0; if (r < 0)r = 0;
-		g[i] = {l, r};
-	}
-	i64 ans = 0;
-	std::function<void(i64)>dfs = [&](i64 i) {
-		hash[i] = v[i];
-		sz[i] = 1;
-		if (g[i].first)dfs(g[i].first), hash[i] += shift(hash[g[i].first]), sz[i] += sz[g[i].first];
-		if (g[i].second)dfs(g[i].second), hash[i] += shift(hash[g[i].second]), sz[i] += sz[g[i].second];
-		if (sz[g[i].first] == sz[g[i].second] and hash[g[i].first] == hash[g[i].second]) {
-			ans = std::max(ans, sz[i]);
-		}
-	};
-	dfs(1);
-	std::cout << ans << "\n";
-	return 0;
+  i64 n; std::cin >> n;
+  std::vector<u64>v(n + 1);
+  for(i64 i = 1; i <= n; i ++) {
+    std::cin >> v[i];
+  }
+  std::vector son(n + 1, vector<i64>(2));
+  for(i64 i = 1;i <= n;i ++) {
+    cin >> son[i][0] >> son[i][1];
+  } 
+  std::vector Hash(n + 1, std::vector<u64>(2, 0ll));
+  u64 base = 23333;
+  std::vector<u64>pw(n + 1);
+  pw[0] = 1;
+  for(i64 i = 1;i <= n; i ++) {
+    pw[i] = pw[i - 1] * base;
+  }
+  i64 ans = 0;
+  std::vector<i64>sz(n + 1);
+  std::function<void(i64, i64)>dfs = [&](i64 u, i64 f) {
+    Hash[u][0] = Hash[u][1] = v[u];
+    sz[u] = 1;
+    for(i64 i = 0; i <= 1;i ++) {
+      if(son[u][i] != -1) {
+        dfs(son[u][i], u);
+        sz[u] += sz[son[u][i]];
+      }
+    }
+    if(son[u][0] != -1)Hash[u][0] = Hash[son[u][0]][0] * base + v[u];
+    if(son[u][1] != -1) {
+      Hash[u][0] = Hash[u][0] * pw[sz[son[u][1]]] + Hash[son[u][1]][0];
+      Hash[u][1] = Hash[son[u][1]][1] * base + v[u];
+    }
+    if(son[u][0] != -1)Hash[u][1] = Hash[u][1] * pw[sz[son[u][0]]] + Hash[son[u][0]][1];
+
+    if((son[u][0] == -1 and son[u][1] == -1) or (son[u][0] != -1 and son[u][1] != -1 
+      and Hash[son[u][0]][0] == Hash[son[u][1]][1]))
+      ans = std::max(ans, sz[u]);
+  };
+  dfs(1, 0);
+  std::cout << ans << "\n";
 }

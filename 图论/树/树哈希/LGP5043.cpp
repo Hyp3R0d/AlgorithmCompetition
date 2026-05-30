@@ -32,25 +32,23 @@ void solve() {
 	i64 m; std::cin >> m;
 	for ( i64 t = 1; t <= m; t++) {
 		i64 n; std::cin >> n;
-		vector<vector< i64>>tr(n + 5);
-		vector< i64>sub(n + 5), root(n + 5);
+		vector<vector<i64>>tr(n + 5);
+		vector<i64>sub(n + 5), root(n + 5);
 		i64 rt = 0;
 		for ( i64 i = 1; i <= n; i++) {
 			i64 f; std::cin >> f;
 			if (f)tr[f].push_back(i);
 			else rt = i;
 		}
-
-
 		// 判断树同构: 所有根遍历后的哈希值叠加再哈希
-		function<void( i64 u)>getsub = [&]( i64 u) {
+		function<void(i64 u)>getsub = [&]( i64 u) {
 			sub[u] = 1;
 			for (auto v : tr[u]) {
 				getsub(v);
 				sub[u] += shift(sub[v]);
 			}
 		};
-		function<void( i64 u)>getRoot = [&]( i64 u) {
+		function<void(i64 u)>getRoot = [&]( i64 u) {
 			for (auto v : tr[u]) {
 				root[v] = sub[v] + shift(root[u] - shift(sub[v]));
 				getRoot(v);
