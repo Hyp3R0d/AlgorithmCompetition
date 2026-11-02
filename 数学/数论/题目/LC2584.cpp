@@ -15,52 +15,49 @@ using u128 = __uint128_t;
 using f128 = long double;
 using namespace std;
 
-constexpr i64 mod = 998244353;
+constexpr i64 mod = 1e9 + 7;
 constexpr i64 maxn = 4e6 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
 
 class Solution {
 public:
-    int findValidSplit(vector<int> &nums) {
-        int mx = *max_element(nums.begin(), nums.end());
-        int lim = mx + 3;
-        vector<int>son(lim + 5, 0); int n = nums.size();
-        vector<int>st[n + 5];
-        for (int i = 2; i <= lim; i++) {
-            if (not son[i]) {
-                son[i] = i;
-                for (int j = i + i; j <= lim; j += i) {
-                    if (not son[j])son[j] = i;
-                }
-            }
-        }
-        unordered_map<i64 , i64>cnt, tot;
-        for (int i = 0; i < n; i++) {
-            int x = nums[i];
-            if (x == 1) {
-                st[i].push_back(1); tot[1]++ ; continue;
-            }
-            while (x != 1) {
-                int las = son[x];
-                while (x % las == 0) {
-                    x /= las;
-                }
-                st[i].push_back(las); tot[las]++;
-            }
-        }
-        i64 cur = tot.size();
-        for (i64 i = 0; i < n - 1; i++) {
-            for (auto s : st[i]) {
-                cnt[s] ++;
-                if (cnt[s] == 1) {
-                    cur--;
-                }
-                if (cnt[s] == tot[s])cur++;//出现的质数全部出现在分割点左半部
-            }
-            if (cur == tot.size())return i;
+  i64 son[1000005];
+  int findValidSplit(vector<int>& nums) {
+    memset(son, 0, sizeof(son));
 
+    for (i64 i = 2; i <= 1e6; i++) {
+      if (not son[i]) {
+        son[i] = i;
+        for (i64 j = i + i; j <= 1e6; j += i) {
+          if (not son[j])son[j] = i;
         }
-        return -1;
+      }
     }
+    i64 n = nums.size();
+    std::unordered_map<i64, i64>w;
+    std::vector<vector<pair<i64, i64>>>z(n);
+    for (i64 i = 0; i < n; i++) {
+      i64 v = nums[i];
+
+      while (v != 1) {
+        i64 las = son[v]; i64 cnt = 0;
+        while (v % las == 0) {
+          v /= las; cnt++;
+        }
+        z[i].push_back({las, cnt});
+        w[las] += cnt;
+      }
+    }
+
+    std::unordered_map<i64, i64>g; i64 tot = 0;
+    for (i64 i = 0; i <= n - 2; i++) {
+      for (auto [v, cnt] : z[i]) {
+        g[v] += cnt;
+        if (g[v] == w[v])tot++;
+      }
+      if (tot == g.size())return i;
+    }
+    return -1;
+  }
 };

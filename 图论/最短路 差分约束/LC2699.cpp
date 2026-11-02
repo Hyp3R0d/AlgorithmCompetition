@@ -20,7 +20,7 @@ constexpr i64 maxn = 4e6 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
 struct sq {
-	int u; i64 dis;
+	i64 u; i64 dis;
 	bool operator<(const sq&b)const {
 		return dis > b.dis;
 	}
@@ -28,79 +28,47 @@ struct sq {
 class Solution {
 public:
 	vector<vector<int>> modifiedGraphEdges(int n, vector<vector<int>>& edges, int source, int destination, int target) {
-		vector<vector<pair<int, int>>>G(n + 5);
-		auto cons = [&](i64 idx, int target) {
-			for (int i = 0; i < n; i++)G[i].clear();
-			for (auto e : edges) {
-				int u = e[0], v = e[1], w = e[2];
-				if (w != -1) {
-					G[u].push_back({v, w});
-					G[v].push_back({u, w});
-				} else {
-					if (idx >= target - 1) {
-						G[u].push_back({v, target});
-						G[v].push_back({u, target});
-						idx -= (target - 1);
-					} else {
-						G[u].push_back({v, 1 + idx});
-						G[v].push_back({u, 1 + idx});
-						idx = 0;
+		std::vector<std::vector<pair<i64, i64>>>g(n);
+		for(i64 i = 0;i < edges.size(); i ++) {
+			i64 x = edges[i][0], y = edges[i][1];
+			g[x].push_back({y, i});
+			g[y].push_back({x, i});
+		}
+		i64 dis[n][2], delta, vis[n];
+		memset(dis, 0x3f, sizeof(dis));
+		dis[source][0] = dis[source][1] = 0;
+		priority_queue<sq>pq;
+		auto dijkstra = [&](i64 k) {
+			memset(vis, 0 ,sizeof(vis));
+			while(pq.size())pq.pop();
+			pq.push({0, 0});
+			while(pq.size()) {
+				auto [x, d] = pq.top();
+				pq.pop(); if(vis[x]) continue;
+				vis[x] = 1;
+				if(x == destination) return;
+				for(auto [y , id] : g[x]) {
+					i64 wt = edges[id][2];
+					if(wt == -1) wt = 1;
+					if(k == 1 and edges[id][2] == -1) {
+						i64 w = delta + dis[y][0] - dis[x][1];
+						if(w > wt) edges[id][2] = wt = w;
 					}
+                    if(dis[y][k] > dis[x][k] + wt) {
+					dis[y][k] = std::min(dis[y][k], dis[x][k] + wt);
+                        if(not vis[y])
+                        pq.push({y, dis[y][k]});
+                    }
 				}
 			}
 		};
-
-		auto dij = [&](int s, int t) {
-			vector<i64>dis(n + 5, inf);
-			vector<bool>vis(n + 5, false);
-			dis[s] = 0; priority_queue<sq>q;
-			q.push({s, 0});
-			while (q.size()) {
-				auto [u, w] = q.top(); q.pop();
-				vis[u] = 1;
-				for (auto [v, d] : G[u]) {
-					if (dis[u] + d < dis[v]) {
-						dis[v] = dis[u] + d;
-						if (not vis[v]) {
-							q.push({v, dis[v]});
-						}
-					}
-				}
-			}
-			return dis[t];
-		};
-		i64 k = 0;
-		for (auto e : edges) {
-			if (e[2] == -1)k++;
-		}
-		cons(0ll, target);
-		if (dij(source, destination) > target) {
-			return {};
-		}
-		cons((i64)k * (target - 1), target);
-		if (dij(source, destination) < target) {
-			return {};
-		}
-		i64 l = 0, r = (i64)k * (target - 1), ans = 0;
-		while (l <= r) {
-			i64 mid = (l + r) >> 1;
-			cons(mid, target);
-			if (dij(source, destination) >= target) {
-				ans = mid; r = mid - 1;
-			} else {
-				r = mid + 1;
-			}
-		}
-		for (auto e : edges) {
-			if (e[2] == -1) {
-				if (ans >= target - 1) {
-					e[2] = target;
-					ans -= target - 1;
-				} else {
-					e[2] = 1 + ans;
-					ans = 0;
-				}
-			}
+		dijkstra(0);
+		delta = target - dis[destination][0];
+		if(delta < 0) return {};
+		dijkstra(1);
+		if(dis[destination][1] < target)return {};
+		for(auto &e : edges) {
+			if(e[2] == -1)e[2] = 1;
 		}
 		return edges;
 	}

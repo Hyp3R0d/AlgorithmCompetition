@@ -40,6 +40,7 @@ int main() {
 	while (q.size()) {
 		i64 u = q.top().second;
 		q.pop();
+		if(vis[u]) continue;
 		vis[u] = true;
 		for (auto [v, w, l, d, k] : g[u]) {
 			if (dis[u] - w < l)continue;

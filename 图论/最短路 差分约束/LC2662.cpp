@@ -67,6 +67,7 @@ public:
 		q.push({0, s});
 		while (q.size()) {
 			auto [d, u] = q.top(); q.pop();
+			if(vis[u]) continue;
 			vis[u] = 1;
 			for (auto [d, v] : tr[u]) {
 				if (dis[u] + d < dis[v]) {

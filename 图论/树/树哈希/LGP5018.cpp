@@ -27,35 +27,26 @@ int main() {
   for(i64 i = 1;i <= n;i ++) {
     cin >> son[i][0] >> son[i][1];
   } 
-  std::vector Hash(n + 1, std::vector<u64>(2, 0ll));
-  u64 base = 23333;
-  std::vector<u64>pw(n + 1);
-  pw[0] = 1;
-  for(i64 i = 1;i <= n; i ++) {
-    pw[i] = pw[i - 1] * base;
-  }
+  
   i64 ans = 0;
   std::vector<i64>sz(n + 1);
-  std::function<void(i64, i64)>dfs = [&](i64 u, i64 f) {
-    Hash[u][0] = Hash[u][1] = v[u];
+  std::function<void(i64)>dfs1 = [&](i64 u) {
     sz[u] = 1;
-    for(i64 i = 0; i <= 1;i ++) {
-      if(son[u][i] != -1) {
-        dfs(son[u][i], u);
-        sz[u] += sz[son[u][i]];
-      }
+    for(i64 i = 0;i <= 1;i ++) {
+      if(son[u][i] == -1)continue;
+      dfs1(son[u][i]);
+      sz[u] += sz[son[u][i]];
     }
-    if(son[u][0] != -1)Hash[u][0] = Hash[son[u][0]][0] * base + v[u];
-    if(son[u][1] != -1) {
-      Hash[u][0] = Hash[u][0] * pw[sz[son[u][1]]] + Hash[son[u][1]][0];
-      Hash[u][1] = Hash[son[u][1]][1] * base + v[u];
-    }
-    if(son[u][0] != -1)Hash[u][1] = Hash[u][1] * pw[sz[son[u][0]]] + Hash[son[u][0]][1];
-
-    if((son[u][0] == -1 and son[u][1] == -1) or (son[u][0] != -1 and son[u][1] != -1 
-      and Hash[son[u][0]][0] == Hash[son[u][1]][1]))
-      ans = std::max(ans, sz[u]);
+  };
+  dfs1(1);
+  std::function<bool(i64, i64)>dfs = [&](i64 x, i64 y) {
+    if(x == -1 and y == -1)return true;
+    if(x == -1 or y == -1)return false;
+    if(v[x] != v[y]) return false;
+    return dfs(son[x][0], son[y][1]) and dfs(son[x][1], son[y][0]);
   };
   dfs(1, 0);
+  i64 ans = 0;
+  for(i64 i = 1;i <= n;i ++)if(dfs(i, i))ans = std::max(ans, sz[i]);
   std::cout << ans << "\n";
 }

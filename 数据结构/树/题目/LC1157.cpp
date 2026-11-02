@@ -19,8 +19,14 @@ constexpr i64 mod = 998244353;
 constexpr i64 maxn = 4e6 + 5;
 constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
-struct Node {
-	int l; int r; int c; int x;
+
+
+
+
+class MajorityChecker {
+public:
+    struct Node {
+	int l = 0; int r = 0; int c = 0; int x = 0;
 };
 
 
@@ -89,11 +95,6 @@ public:
 	}
 
 };
-
-
-
-class MajorityChecker {
-public:
 	std::vector<int>a;
 	SegmentTree tr;
 	std::vector<int>loc[20005];

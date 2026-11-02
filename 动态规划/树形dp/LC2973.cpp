@@ -30,60 +30,59 @@ constexpr i64 inf = 0x3f3f3f3f3f3f3f3f;
 
 class Solution {
 public:
-	vector<long long> placedCoins(vector<vector<int>>& edges, vector<int>& cost) {
-		i64 n = cost.size();
-		cost.insert(cost.begin(), 0ll);
-		std::vector<std::vector<i64>>g(n + 1);
-		for (auto e : edges) {
-			g[e[0] + 1].push_back(e[1] + 1);
-			g[e[1] + 1].push_back(e[0] + 1);
-		}
-		std::vector pos(n + 1, std::vector<i64>(3, -inf));
-		std::vector neg(n + 1, std::vector<i64>(3, -inf));
-		std::vector<i64>ans(n);
-		std::vector<i64>sz(n + 1, 1);
-		std::function<void(i64, i64)>dfs = [&](i64 u, i64 f) {
-			if (cost[u] < 0)neg[u][0] = abs(cost[u]);
-			else pos[u][0] = abs(cost[u]);
-			for (auto v : g[u]) {
-				if (v == f)continue;
-				dfs(v, u);
-				std::vector<i64>v1, v2;
-				// 维护pos的三个最大值
-				for (i64 i = 0; i <= 2; i++) {
-					if (pos[v][i] != -inf) {
-						v1.push_back(pos[v][i]);
-					}
-					if (pos[u][i] != -inf)v1.push_back(pos[u][i]);
-					if (neg[v][i] != -inf) {
-						v2.push_back(neg[v][i]);
-					}
-					if (neg[u][i] != -inf)v2.push_back(neg[v][i]);
-
-				}
-				sz[u] += sz[v];
-				std::sort(v1.begin(), v1.end(), [&](i64 x, i64 y) {
-					return abs(x) > abs(y);
-				});
-				std::sort(v2.begin(), v2.end(), [&](i64 x, i64 y) {
-					return abs(x) > abs(y);
-				});
-				i64 idx1 = 0; i64 idx2 = 0;
-				for (i64 i = 0; i < std::min(3ll, (i64)v1.size()); i++)pos[u][i] = v1[i];
-				for (i64 i = 0; i < std::min(3ll, (i64)v2.size()); i++)neg[u][i] = v2[i];
-			}
-            if (sz[u] < 3)ans[u - 1] = 1;
-				else {
-					// 凑一正两负
-					if (pos[u][0] != -inf and neg[u][0] != -inf and neg[u][1] != -inf)ans[u - 1] =
-							(pos[u][0] * neg[u][0] * neg[u][1]);
-					// 凑三正
-                    else if (pos[u][0] != -inf and pos[u][1] != -inf and pos[u][2] != -inf)ans[u - 1] =
-							(pos[u][0] * pos[u][1] * pos[u][2]);
-                    else ans[u - 1] = 0;
-				}
-		};
-		dfs(1, -1);
-		return ans;
-	}
+  vector<long long> placedCoins(vector<vector<int>>& edges, vector<int>& cost) {
+    i64 n = cost.size();
+    cost.insert(cost.begin(), 0ll);
+    std::vector<std::vector<i64>>g(n + 1);
+    for (auto e : edges) {
+      g[e[0] + 1].push_back(e[1] + 1);
+      g[e[1] + 1].push_back(e[0] + 1);
+    }
+    std::vector pos(n + 1, std::vector<i64>(3, -inf));
+    std::vector neg(n + 1, std::vector<i64>(3, -inf));
+    std::vector<i64>ans(n, 0);
+    std::vector<i64>sz(n + 1, 1);
+    std::function<void(i64, i64)>dfs = [&](i64 u, i64 f) {
+            std::vector<i64>v1, v2;
+            if (cost[u] > 0)v1.push_back(cost[u]);
+            else v2.push_back(cost[u]);
+            
+      for (auto v : g[u]) {
+        if (v == f)continue;
+        dfs(v, u);
+        
+        // 维护pos的三个最大值
+        for (i64 i = 0; i <= 2; i++) {
+          if (pos[v][i] != -inf) {
+            v1.push_back(pos[v][i]);
+          }
+          if (neg[v][i] != -inf) {
+            v2.push_back(neg[v][i]);
+          }
+        }
+        sz[u] += sz[v];
+        
+      }
+      std::sort(v1.begin(), v1.end(), [&](i64 x, i64 y) {
+          return abs(x) > abs(y);
+      });
+      std::sort(v2.begin(), v2.end(), [&](i64 x, i64 y) {
+          return abs(x) > abs(y);
+      });
+      for (i64 i = 0; i < std::min(3ll, (i64)v1.size()); i++)pos[u][i] = v1[i];
+      for (i64 i = 0; i < std::min(3ll, (i64)v2.size()); i++)neg[u][i] = v2[i];
+      if (sz[u] < 3)ans[u - 1] = 1;
+      else {
+          // 凑一正两负
+            if (pos[u][0] != -inf and neg[u][0] != -inf and neg[u][1] != -inf)ans[u - 1] =
+              max(ans[u - 1], pos[u][0] * neg[u][0] * neg[u][1]);
+          // 凑三正
+            if (pos[u][0] != -inf and pos[u][1] != -inf and pos[u][2] != -inf)ans[u - 1] =
+              max(ans[u - 1], pos[u][0] * pos[u][1] * pos[u][2]);
+            
+        }
+    };
+    dfs(1, -1);
+    return ans;
+  }
 };

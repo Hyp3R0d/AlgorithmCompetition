@@ -43,6 +43,7 @@ void solve() {
 		while (!q.empty()) {
 			auto [u, d] = q.top();
 			q.pop();
+			if(vis[u]) continue;
 			vis[u] = true;
 			for (auto [v, w] : tr[u]) {
 				if (dis[v] > dis[u] + w) {

@@ -36,6 +36,7 @@ void solve() {
 
   while (q.size()) {
     auto [d, u] = q.top(); q.pop();
+    if(vis[u]) continue;
     vis[u] = 1;
     for (auto v : g[u]) {
       if (dis[v] < d - 1) {

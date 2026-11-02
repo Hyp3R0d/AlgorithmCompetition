@@ -21,7 +21,9 @@ public:
         vector<pair<int, int>>dir = {{1, 0}, { -1, 0}, {0, 1}, {0, -1}};
         while (q.size()) {
             auto [x, y, d] = q.top();
-            q.pop(); vis[x][y] = 1;
+            q.pop(); 
+            if(vis[x][y]) continue;
+            vis[x][y] = 1;
             for (auto [dx, dy] : dir) {
                 int xx = x + dx, yy = y + dy;
                 if (not check(xx, yy))continue;
